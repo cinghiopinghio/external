@@ -43,28 +43,25 @@ elif albert_op == "TEARDOWNSESSION":
     sys.exit(0)
 
 elif albert_op == "QUERY":
-    logging.debug('query1: ' + os.environ.get("ALBERT_QUERY", ''))
+    albert_query = os.environ.get("ALBERT_QUERY", '')
+    albert_query = albert_query[len(trigger):].strip()
 
-    albert_query = os.environ.get("ALBERT_QUERY", '')[len(trigger):]
-
-    logging.debug('query2: ' + albert_query)
+    logging.debug('query: ' + albert_query)
     items = []
 
     if albert_query != '':
         command = ['buku', '--sreg', albert_query, '-j']
     else:
-        command = ['buku', '-p', '1', '-j']
+        command = ['buku', '--sreg', 'news', '-j']
     logging.debug('running ' + ' '.join(command))
-
-    # output = subprocess.check_output(command,
-    #                                  shell=False,
-    #                                  timeout=2).decode().strip()
 
     proc = subprocess.Popen(command,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE
                             )
     output, perr = proc.communicate()
+    output = output.decode()
+    perr = perr.decode()
     logging.debug('STDERR' + perr)
 
     logging.debug('STDOUT' + output)
@@ -91,7 +88,7 @@ elif albert_op == "QUERY":
     res = {
         'items': items[:]
     }
-    print(json.dumps(res), end='')
+    print(json.dumps(res))
     sys.exit(0)
 
 elif albert_op == "COPYTOCLIPBOARD":
