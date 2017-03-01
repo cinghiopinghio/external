@@ -46,24 +46,30 @@ elif albert_op == "QUERY":
     albert_query = os.environ.get("ALBERT_QUERY", '')
     albert_query = albert_query[len(trigger):].strip()
 
+    # logging.debug(json.dumps(dict(os.environ), indent=4))
+
     logging.debug('query: ' + albert_query)
     items = []
 
-    if albert_query != '':
-        command = ['buku', '--sreg', albert_query, '-j']
-    else:
-        command = ['buku', '--sreg', 'news', '-j']
+    if albert_query == '':
+        albert_query = 'news'
+    command = ['buku', '--deep', albert_query, '-j', '--np']
+    command += ['-z']
     logging.debug('running ' + ' '.join(command))
+    # command = ' '.join(command) + '; exit 0'
 
     proc = subprocess.Popen(command,
                             stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE
+                            stderr=subprocess.PIPE,
                             )
-    output, perr = proc.communicate()
+    try:
+        output, perr = proc.communicate(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        output, perr = proc.communicate()
     output = output.decode()
     perr = perr.decode()
     logging.debug('STDERR' + perr)
-
     logging.debug('STDOUT' + output)
     if output[0] != '[':
         output = '['+output+']'
