@@ -37,11 +37,7 @@ case $ALBERT_OP in
     "name":"Currency Exchange",
     "description":"Usage: exch '${amount:=Amount}' '${from:=FROM}' '${to:=TO}'",
     "icon":"accessories-calculator",
-    "actions":[{
-      "name":"Copy to clipboard",
-      "command":"sh",
-      "arguments":["-c", "echo -n \"'"${rhs}"'\" | xclip -i; echo -n \"'"${rhs}"'\" | xclip -i -selection clipboard;"]
-    }]
+    "actions":[]
   }]
 }'
       exit 0
