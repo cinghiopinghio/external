@@ -27,16 +27,34 @@ case $ALBERT_OP in
     ;;
   "QUERY")
     amount=`echo ${ALBERT_QUERY:5} | cut -d ' ' -f1`
-    from=`echo ${ALBERT_QUERY:5} | cut -d ' ' -f2`
-    to=`echo ${ALBERT_QUERY:5} | cut -d ' ' -f3`
-    equation=`wget -qO- "http://www.google.com/finance/converter?a=${amount}&from=${from}&to=${to}"  | sed '/res/!d;s/<[^>]*>//g'`
-    [ ${#equation} -le 2 ] && exit 0
-    rhs=`echo $equation | cut -d ' ' -f4-`
+    from=`echo ${ALBERT_QUERY:5} | cut -sd ' ' -f2 | tr "[:lower:]" "[:upper:]"`
+    to=`echo ${ALBERT_QUERY:5} | cut -sd ' ' -f3 | tr "[:lower:]" "[:upper:]"`
+    if [[ -z $to ]];
+    then 
+      echo  \
+'{
+  "items":[{
+    "name":"Currency Exchange",
+    "description":"Usage: exch '${amount:=Amount}' '${from:=FROM}' '${to:=TO}'",
+    "icon":"accessories-calculator",
+    "actions":[{
+      "name":"Copy to clipboard",
+      "command":"sh",
+      "arguments":["-c", "echo -n \"'"${rhs}"'\" | xclip -i; echo -n \"'"${rhs}"'\" | xclip -i -selection clipboard;"]
+    }]
+  }]
+}'
+      exit 0
+    fi
+
+    conversion=`curl -s http://api.fixer.io/latest\?symbols=${to}\&base\=${from} | sed -e 's/[{}]/\n/g' | grep -i ${to} | sed -e 's/^.*://'`
+    equation=`echo "$amount * $conversion" | bc`
+    rhs="$amount $from = $equation $to"
     echo \
 '{
   "items":[{
     "name":"'${rhs}'",
-    "description":"'${equation}'",
+    "description":"Conversion '${conversion}'",
     "icon":"accessories-calculator",
     "actions":[{
       "name":"Copy to clipboard",
